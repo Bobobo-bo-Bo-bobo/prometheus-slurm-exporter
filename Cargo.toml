@@ -1,0 +1,20 @@
+[package]
+name = "prometheus-slurm-exporter"
+version = "1.0.0-20220327"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.19"
+fern = "0.6.0"
+getopts = "0.2.21"
+lazy_static = "1.4.0"
+log = "0.4.16"
+prometheus = { version = "0.13.0", features = ["process"] }
+serde = { version = "1.0.136", features = ["derive"] }
+serde_yaml = "0.8.23"
+simple-error = "0.2.3"
+tokio = { version = "1.17.0", features = ["full"] }
+warp = "0.3.2"
+
