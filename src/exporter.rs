@@ -56,6 +56,10 @@ pub fn metrics() -> String {
         error!("Can't update SLURM partition metrics: {}", e);
         return buffer;
     }
+    if let Err(e) = slurm::update_job_metrics() {
+        error!("Can't update SLURM job metrics: {}", e);
+        return buffer;
+    }
 
     if let Err(e) = encoder.encode_utf8(&REGISTRY.gather(), &mut buffer) {
         error!("Can't encode metrics as UTF8 string: {}", e);
