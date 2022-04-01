@@ -1,5 +1,5 @@
 # General information
-This is an exporter to export job and partition state information of the (https://slurm.schedmd.com/)[SLURM workload manager]to be scraped by (https://prometheus.io)[Prometheus].
+This is an exporter to export job and partition state information of the [SLURM workload manager](https://slurm.schedmd.com/)to be scraped by [Prometheus](https://prometheus.io).
 
 # Information
 ## Building
