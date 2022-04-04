@@ -14,6 +14,8 @@ pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
     let mut job_task_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
         HashMap::new();
     let mut job_cpu_states: HashMap<String, HashMap<String, HashMap<String, i64>>> = HashMap::new();
+    let mut job_count_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
+        HashMap::new();
 
     let squeue = Command::new("squeue")
         .arg("--noheader")
@@ -59,10 +61,18 @@ pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
         *partition.entry(s.clone()).or_insert(0) += tasks;
 
         let cluster = job_cpu_states
+            .entry(c.clone())
+            .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
+        let partition = cluster
+            .entry(p.clone())
+            .or_insert_with(HashMap::<String, i64>::new);
+        *partition.entry(s.clone()).or_insert(0) += cpus;
+
+        let cluster = job_count_states
             .entry(c)
             .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
         let partition = cluster.entry(p).or_insert_with(HashMap::<String, i64>::new);
-        *partition.entry(s).or_insert(0) += cpus;
+        *partition.entry(s).or_insert(0) += 1;
     }
 
     for (clu, cpart) in job_node_states.iter() {
@@ -89,6 +99,16 @@ pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
         for (part, pstate) in cpart.iter() {
             for (state, count) in pstate.iter() {
                 exporter::JOBS_CPUS
+                    .with_label_values(&[clu, part, state])
+                    .set(*count);
+            }
+        }
+    }
+
+    for (clu, cpart) in job_count_states.iter() {
+        for (part, pstate) in cpart.iter() {
+            for (state, count) in pstate.iter() {
+                exporter::JOBS_COUNT
                     .with_label_values(&[clu, part, state])
                     .set(*count);
             }

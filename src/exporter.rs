@@ -39,12 +39,21 @@ lazy_static! {
         &["cluster", "partition", "state"],
     )
     .unwrap();
+    pub static ref JOBS_COUNT: IntGaugeVec = IntGaugeVec::new(
+        Opts::new(
+            constants::METRIC_JOBS_COUNT_NAME,
+            constants::METRIC_JOBS_COUNT_HELP,
+        ),
+        &["cluster", "partition", "state"],
+    )
+    .unwrap();
 }
 
 pub fn register() {
     REGISTRY.register(Box::new(JOBS_NODES.clone())).unwrap();
     REGISTRY.register(Box::new(JOBS_TASKS.clone())).unwrap();
     REGISTRY.register(Box::new(JOBS_CPUS.clone())).unwrap();
+    REGISTRY.register(Box::new(JOBS_COUNT.clone())).unwrap();
     REGISTRY.register(Box::new(PARTITIONS.clone())).unwrap();
 }
 
