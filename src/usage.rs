@@ -18,8 +18,24 @@ Public License Version 3. (http://www.gnu.org/copyleft/gpl.html)
 pub fn show_usage() {
     show_version();
     println!(
-        "Usage {} [-N|--no-job-nodes] [-V|--version] [-c <cluster>,...|--cluster=<cluster>,...]
-        [-h|--help] [-l <addr>|--listen=<addr>] [-q|--quiet]
+        "Usage {} [-C|--no-job-cpus] [-J|--no-job-count] [-N|--no-job-nodes] [-T|--no-job-tasks]
+        [-V|--version] [-c <cluster>,...|--cluster=<cluster>,...] [-h|--help]
+        [-l <addr>|--listen=<addr>] [-q|--quiet]
+
+    -C                      Don't export number of allocated or requested CPUs for jobs
+    --no-job-cpus
+
+    -J                      Don't export number of jobs
+    --no-job-count
+
+    -N                      Don't export number of allocated or requested nodes for jobs
+    --no-job-nodes
+
+    -P                      Don't export SLURM partition states
+    --no-partitions
+
+    -T                      Don't export number of allocated or requested tasks for jobs
+    --no-job-tasks
 
     -V                      Show version information
     --version

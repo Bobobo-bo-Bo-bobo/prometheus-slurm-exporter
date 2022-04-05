@@ -20,6 +20,17 @@ async fn main() {
     let mut options = Options::new();
     let mut log_level = log::LevelFilter::Info;
 
+    let mut job_cpus = true;
+    let mut job_count = true;
+    let mut job_nodes = true;
+    let mut job_tasks = true;
+    let mut partitions = true;
+
+    options.optflag("C", "no-job-cpus", "Don't export job CPUs");
+    options.optflag("J", "no-job-count", "Don't export number of jobs");
+    options.optflag("N", "no-job-nodes", "Don't export number of nodes for jobs");
+    options.optflag("P", "no-partitions", "Don't export partition states");
+    options.optflag("T", "no-job-tasks", "Don't export number of tasks for jobs");
     options.optflag("V", "version", "Show version information");
     options.optflag("h", "help", "Show help text");
     options.optflag("q", "quiet", "Quiet operation");
@@ -55,6 +66,26 @@ async fn main() {
         log_level = log::LevelFilter::Warn;
     }
 
+    if opts.opt_present("C") {
+        job_cpus = false;
+    }
+
+    if opts.opt_present("J") {
+        job_count = false;
+    }
+
+    if opts.opt_present("N") {
+        job_nodes = false;
+    }
+
+    if opts.opt_present("P") {
+        partitions = false;
+    }
+
+    if opts.opt_present("T") {
+        job_tasks = false;
+    }
+
     let clusters = opts
         .opt_str("c")
         .unwrap_or_else(|| constants::SLURM_CLUSTERS.to_string());
@@ -71,7 +102,24 @@ async fn main() {
         }
     };
 
-    exporter::register();
+    let mut export_bitmask: u8 = 0x00;
+    if job_cpus {
+        export_bitmask |= constants::BITMASK_JOB_CPUS;
+    }
+    if job_count {
+        export_bitmask |= constants::BITMASK_JOB_COUNT;
+    }
+    if job_nodes {
+        export_bitmask |= constants::BITMASK_JOB_NODES;
+    }
+    if job_tasks {
+        export_bitmask |= constants::BITMASK_JOB_TASKS;
+    }
+    if partitions {
+        export_bitmask |= constants::BITMASK_PARTITIONS;
+    }
+
+    exporter::register(export_bitmask);
 
     let socketaddr = match socketaddr_from_listen(&listen_address) {
         Ok(v) => v,
@@ -83,7 +131,7 @@ async fn main() {
 
     let prometheus_route = warp::path(constants::DEFAULT_METRICS_PATH)
         .and(warp::get())
-        .map(move || exporter::metrics(&clusters));
+        .map(move || exporter::metrics(&clusters, export_bitmask));
 
     let root_route = warp::path::end()
         .and(warp::get())

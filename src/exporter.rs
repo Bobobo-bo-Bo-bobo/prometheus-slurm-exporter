@@ -49,23 +49,36 @@ lazy_static! {
     .unwrap();
 }
 
-pub fn register() {
-    REGISTRY.register(Box::new(JOBS_NODES.clone())).unwrap();
-    REGISTRY.register(Box::new(JOBS_TASKS.clone())).unwrap();
-    REGISTRY.register(Box::new(JOBS_CPUS.clone())).unwrap();
-    REGISTRY.register(Box::new(JOBS_COUNT.clone())).unwrap();
-    REGISTRY.register(Box::new(PARTITIONS.clone())).unwrap();
+pub fn register(bitmask: u8) {
+    if bitmask & constants::BITMASK_JOB_NODES == constants::BITMASK_JOB_NODES {
+        REGISTRY.register(Box::new(JOBS_NODES.clone())).unwrap();
+    }
+    if bitmask & constants::BITMASK_JOB_TASKS == constants::BITMASK_JOB_TASKS {
+        REGISTRY.register(Box::new(JOBS_TASKS.clone())).unwrap();
+    }
+    if bitmask & constants::BITMASK_JOB_CPUS == constants::BITMASK_JOB_CPUS {
+        REGISTRY.register(Box::new(JOBS_CPUS.clone())).unwrap();
+    }
+    if bitmask & constants::BITMASK_JOB_COUNT == constants::BITMASK_JOB_COUNT {
+        REGISTRY.register(Box::new(JOBS_COUNT.clone())).unwrap();
+    }
+    if bitmask & constants::BITMASK_PARTITIONS == constants::BITMASK_PARTITIONS {
+        REGISTRY.register(Box::new(PARTITIONS.clone())).unwrap();
+    }
 }
 
-pub fn metrics(slurm_cluster: &str) -> String {
+pub fn metrics(slurm_cluster: &str, bitmask: u8) -> String {
     let encoder = TextEncoder::new();
     let mut buffer = String::new();
 
-    if let Err(e) = slurm::update_partition_metrics(slurm_cluster) {
-        error!("Can't update SLURM partition metrics: {}", e);
-        return buffer;
+    if bitmask & constants::BITMASK_PARTITIONS == constants::BITMASK_PARTITIONS {
+        if let Err(e) = slurm::update_partition_metrics(slurm_cluster) {
+            error!("Can't update SLURM partition metrics: {}", e);
+            return buffer;
+        }
     }
-    if let Err(e) = slurm::update_job_metrics(slurm_cluster) {
+
+    if let Err(e) = slurm::update_job_metrics(slurm_cluster, bitmask) {
         error!("Can't update SLURM job metrics: {}", e);
         return buffer;
     }

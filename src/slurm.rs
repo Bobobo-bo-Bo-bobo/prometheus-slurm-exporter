@@ -1,9 +1,10 @@
+use crate::constants;
 use crate::exporter;
 use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
 
-pub fn update_job_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error>> {
+pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dyn Error>> {
     // <cluster>: {
     //  <partition>: {
     //      <state>: <count>
@@ -44,77 +45,92 @@ pub fn update_job_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error>> {
                 line
             ),
         };
-        let cluster = job_node_states
-            .entry(c.clone())
-            .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
-        let partition = cluster
-            .entry(p.clone())
-            .or_insert_with(HashMap::<String, i64>::new);
-        *partition.entry(s.clone()).or_insert(0) += nodes;
+        if bitmask & constants::BITMASK_JOB_NODES == constants::BITMASK_JOB_NODES {
+            let cluster = job_node_states
+                .entry(c.clone())
+                .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
+            let partition = cluster
+                .entry(p.clone())
+                .or_insert_with(HashMap::<String, i64>::new);
+            *partition.entry(s.clone()).or_insert(0) += nodes;
+        }
 
-        let cluster = job_task_states
-            .entry(c.clone())
-            .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
-        let partition = cluster
-            .entry(p.clone())
-            .or_insert_with(HashMap::<String, i64>::new);
-        *partition.entry(s.clone()).or_insert(0) += tasks;
+        if bitmask & constants::BITMASK_JOB_TASKS == constants::BITMASK_JOB_TASKS {
+            let cluster = job_task_states
+                .entry(c.clone())
+                .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
+            let partition = cluster
+                .entry(p.clone())
+                .or_insert_with(HashMap::<String, i64>::new);
+            *partition.entry(s.clone()).or_insert(0) += tasks;
+        }
 
-        let cluster = job_cpu_states
-            .entry(c.clone())
-            .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
-        let partition = cluster
-            .entry(p.clone())
-            .or_insert_with(HashMap::<String, i64>::new);
-        *partition.entry(s.clone()).or_insert(0) += cpus;
+        if bitmask & constants::BITMASK_JOB_CPUS == constants::BITMASK_JOB_CPUS {
+            let cluster = job_cpu_states
+                .entry(c.clone())
+                .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
+            let partition = cluster
+                .entry(p.clone())
+                .or_insert_with(HashMap::<String, i64>::new);
+            *partition.entry(s.clone()).or_insert(0) += cpus;
+        }
 
-        let cluster = job_count_states
-            .entry(c)
-            .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
-        let partition = cluster.entry(p).or_insert_with(HashMap::<String, i64>::new);
-        *partition.entry(s).or_insert(0) += 1;
+        if bitmask & constants::BITMASK_JOB_COUNT == constants::BITMASK_JOB_COUNT {
+            let cluster = job_count_states
+                .entry(c)
+                .or_insert_with(HashMap::<String, HashMap<String, i64>>::new);
+            let partition = cluster.entry(p).or_insert_with(HashMap::<String, i64>::new);
+            *partition.entry(s).or_insert(0) += 1;
+        }
     }
 
-    for (clu, cpart) in job_node_states.iter() {
-        for (part, pstate) in cpart.iter() {
-            for (state, count) in pstate.iter() {
-                exporter::JOBS_NODES
-                    .with_label_values(&[clu, part, state])
-                    .set(*count);
+    if bitmask & constants::BITMASK_JOB_NODES == constants::BITMASK_JOB_NODES {
+        for (clu, cpart) in job_node_states.iter() {
+            for (part, pstate) in cpart.iter() {
+                for (state, count) in pstate.iter() {
+                    exporter::JOBS_NODES
+                        .with_label_values(&[clu, part, state])
+                        .set(*count);
+                }
             }
         }
     }
 
-    for (clu, cpart) in job_task_states.iter() {
-        for (part, pstate) in cpart.iter() {
-            for (state, count) in pstate.iter() {
-                exporter::JOBS_TASKS
-                    .with_label_values(&[clu, part, state])
-                    .set(*count);
+    if bitmask & constants::BITMASK_JOB_TASKS == constants::BITMASK_JOB_TASKS {
+        for (clu, cpart) in job_task_states.iter() {
+            for (part, pstate) in cpart.iter() {
+                for (state, count) in pstate.iter() {
+                    exporter::JOBS_TASKS
+                        .with_label_values(&[clu, part, state])
+                        .set(*count);
+                }
             }
         }
     }
 
-    for (clu, cpart) in job_cpu_states.iter() {
-        for (part, pstate) in cpart.iter() {
-            for (state, count) in pstate.iter() {
-                exporter::JOBS_CPUS
-                    .with_label_values(&[clu, part, state])
-                    .set(*count);
+    if bitmask & constants::BITMASK_JOB_CPUS == constants::BITMASK_JOB_CPUS {
+        for (clu, cpart) in job_cpu_states.iter() {
+            for (part, pstate) in cpart.iter() {
+                for (state, count) in pstate.iter() {
+                    exporter::JOBS_CPUS
+                        .with_label_values(&[clu, part, state])
+                        .set(*count);
+                }
             }
         }
     }
 
-    for (clu, cpart) in job_count_states.iter() {
-        for (part, pstate) in cpart.iter() {
-            for (state, count) in pstate.iter() {
-                exporter::JOBS_COUNT
-                    .with_label_values(&[clu, part, state])
-                    .set(*count);
+    if bitmask & constants::BITMASK_JOB_COUNT == constants::BITMASK_JOB_COUNT {
+        for (clu, cpart) in job_count_states.iter() {
+            for (part, pstate) in cpart.iter() {
+                for (state, count) in pstate.iter() {
+                    exporter::JOBS_COUNT
+                        .with_label_values(&[clu, part, state])
+                        .set(*count);
+                }
             }
         }
     }
-
     Ok(())
 }
 
