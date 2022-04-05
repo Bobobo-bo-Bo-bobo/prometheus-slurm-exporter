@@ -57,15 +57,15 @@ pub fn register() {
     REGISTRY.register(Box::new(PARTITIONS.clone())).unwrap();
 }
 
-pub fn metrics() -> String {
+pub fn metrics(slurm_cluster: &str) -> String {
     let encoder = TextEncoder::new();
     let mut buffer = String::new();
 
-    if let Err(e) = slurm::update_partition_metrics() {
+    if let Err(e) = slurm::update_partition_metrics(slurm_cluster) {
         error!("Can't update SLURM partition metrics: {}", e);
         return buffer;
     }
-    if let Err(e) = slurm::update_job_metrics() {
+    if let Err(e) = slurm::update_job_metrics(slurm_cluster) {
         error!("Can't update SLURM job metrics: {}", e);
         return buffer;
     }

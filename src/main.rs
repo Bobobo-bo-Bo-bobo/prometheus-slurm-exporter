@@ -23,6 +23,7 @@ async fn main() {
     options.optflag("V", "version", "Show version information");
     options.optflag("h", "help", "Show help text");
     options.optflag("q", "quiet", "Quiet operation");
+    options.optopt("c", "cluster", "cluster", "Export data for given cluster");
     options.optopt(
         "l",
         "listen",
@@ -54,6 +55,10 @@ async fn main() {
         log_level = log::LevelFilter::Warn;
     }
 
+    let clusters = opts
+        .opt_str("c")
+        .unwrap_or_else(|| constants::SLURM_CLUSTERS.to_string());
+
     let listen_address = opts
         .opt_str("l")
         .unwrap_or_else(|| constants::DEFAULT_LISTEN_ADDRESS.to_string());
@@ -78,7 +83,7 @@ async fn main() {
 
     let prometheus_route = warp::path(constants::DEFAULT_METRICS_PATH)
         .and(warp::get())
-        .map(exporter::metrics);
+        .map(move || exporter::metrics(&clusters));
 
     let root_route = warp::path::end()
         .and(warp::get())

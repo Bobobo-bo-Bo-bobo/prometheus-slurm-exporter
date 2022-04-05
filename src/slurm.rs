@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
 
-pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
+pub fn update_job_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error>> {
     // <cluster>: {
     //  <partition>: {
     //      <state>: <count>
@@ -20,7 +20,7 @@ pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
     let squeue = Command::new("squeue")
         .arg("--noheader")
         .arg("--Format=Cluster,Partition,State,NumNodes,NumTasks,NumCPUs")
-        .arg("--clusters=all")
+        .arg(format!("--clusters={}", slurm_cluster))
         .arg("--all")
         .output()?;
 
@@ -118,7 +118,7 @@ pub fn update_job_metrics() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn update_partition_metrics() -> Result<(), Box<dyn Error>> {
+pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error>> {
     // HashMap of
     //  <cluster>: {
     //   <partition>: {
@@ -130,7 +130,7 @@ pub fn update_partition_metrics() -> Result<(), Box<dyn Error>> {
     let sinfo = Command::new("sinfo")
         .arg("--noheader")
         .arg("--Format=Cluster,Partition,NodeHost,StateLong")
-        .arg("--clusters=all")
+        .arg(format!("--clusters={}", slurm_cluster))
         .output()?;
 
     let rc = match sinfo.status.code() {
