@@ -8,11 +8,20 @@ As a Rust program, a stable Rust build chain is required to build the exporter
 ## Running
 The node running this exporter *must* have a valid SLURM configuration and the SLURM client binaries - `sinfo` and `squeue` - installed and in it's path.
 
+If running as an unprivileged service user, the user must have access to the information provided by `sinfo` and `squeue` . Futhermore the unprivileged service user must be resolved by all SLURM masters (primary and backup master).
+
 # Command line options
 
 | *Option* | *Parameter* | *default* | *Description* |
 |:---------|:------------|:----------|:--------------|
+| `-C` / `--no-job-cpus` | - | - | Don't export number of allocated or requested CPUs for jobs |
+| `-D` / `--debug` | - | - | Enable debug output |
+| `-J` / `--no-job-count` | - | - | Don't export number of jobs |
+| `-N` / `--no-job-nodes` | - | - | Don't export number of allocated or requested nodes for jobs |
+| `-P` / `--no-partitions` | - | - | Don't export SLURM partition states |
+| `-T` / `--no-job-tasks` | - | - | Don't export number of allocated or requested tasks for jobs |
 | `-V` / `--version` | - | - | Show version information |
+| `-c` / `--cluster` | `<cluster>,...` | `all` | Export metrics for comma separated list of clusters |
 | `-h` / `--help` | - | - | Show help information |
 | `-q` / `--quiet` | - | - | Quiet operation, only warnings and errors are logged |
 | `-l` / `--listen` | `<addr>` | `localhost:9703` | Address to listen for Prometheus scrapes |
