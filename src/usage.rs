@@ -18,12 +18,15 @@ Public License Version 3. (http://www.gnu.org/copyleft/gpl.html)
 pub fn show_usage() {
     show_version();
     println!(
-        "Usage {} [-C|--no-job-cpus] [-J|--no-job-count] [-N|--no-job-nodes] [-T|--no-job-tasks]
+        "Usage {} [-C|--no-job-cpus] [-D|--debug] [-J|--no-job-count] [-N|--no-job-nodes] [-T|--no-job-tasks]
         [-V|--version] [-c <cluster>,...|--cluster=<cluster>,...] [-h|--help]
         [-l <addr>|--listen=<addr>] [-q|--quiet]
 
     -C                      Don't export number of allocated or requested CPUs for jobs
     --no-job-cpus
+
+    -D                      Enable debug output
+    --debug
 
     -J                      Don't export number of jobs
     --no-job-count

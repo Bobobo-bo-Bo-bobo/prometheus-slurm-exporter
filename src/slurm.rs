@@ -1,5 +1,7 @@
 use crate::constants;
 use crate::exporter;
+
+use log::debug;
 use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
@@ -18,6 +20,7 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
     let mut job_count_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
         HashMap::new();
 
+    debug!("slurm.rs:update_job_metrics: running external command: squeue --noheader --Format=Cluster,Partition,State,NumNodes,NumTasks,NumCPUs --clusters={} --all", slurm_cluster);
     let squeue = Command::new("squeue")
         .arg("--noheader")
         .arg("--Format=Cluster,Partition,State,NumNodes,NumTasks,NumCPUs")
@@ -31,6 +34,10 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
             bail!("Can't get return code of squeue command");
         }
     };
+    debug!(
+        "slurm.rs:update_job_metrics: external command finished with exit code {}",
+        rc
+    );
 
     if !squeue.status.success() {
         bail!("squeue command exited with non-normal exit code {}", rc);
@@ -38,6 +45,7 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
 
     let stdout = String::from_utf8(squeue.stdout)?;
     for line in stdout.lines() {
+        debug!("slurm.rs:update_job_metrics: Processing line: {}", line);
         let (c, p, s, nodes, tasks, cpus) = match split_job_state_line(line) {
             Some(v) => v,
             None =>  bail!(
@@ -88,6 +96,10 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
         for (clu, cpart) in job_node_states.iter() {
             for (part, pstate) in cpart.iter() {
                 for (state, count) in pstate.iter() {
+                    debug!(
+                        "slurm.rs:update_job_metrics: Setting JOBS_NODES {} {} {} -> {}",
+                        clu, part, state, *count
+                    );
                     exporter::JOBS_NODES
                         .with_label_values(&[clu, part, state])
                         .set(*count);
@@ -100,6 +112,10 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
         for (clu, cpart) in job_task_states.iter() {
             for (part, pstate) in cpart.iter() {
                 for (state, count) in pstate.iter() {
+                    debug!(
+                        "slurm.rs:update_job_metrics: Setting JOBS_TASKS {} {} {} -> {}",
+                        clu, part, state, *count
+                    );
                     exporter::JOBS_TASKS
                         .with_label_values(&[clu, part, state])
                         .set(*count);
@@ -112,6 +128,10 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
         for (clu, cpart) in job_cpu_states.iter() {
             for (part, pstate) in cpart.iter() {
                 for (state, count) in pstate.iter() {
+                    debug!(
+                        "slurm.rs:update_job_metrics: Setting JOBS_CPUS {} {} {} -> {}",
+                        clu, part, state, *count
+                    );
                     exporter::JOBS_CPUS
                         .with_label_values(&[clu, part, state])
                         .set(*count);
@@ -124,6 +144,10 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
         for (clu, cpart) in job_count_states.iter() {
             for (part, pstate) in cpart.iter() {
                 for (state, count) in pstate.iter() {
+                    debug!(
+                        "slurm.rs:update_job_metrics: Setting JOBS_COUNT {} {} {} -> {}",
+                        clu, part, state, *count
+                    );
                     exporter::JOBS_COUNT
                         .with_label_values(&[clu, part, state])
                         .set(*count);
@@ -143,6 +167,8 @@ pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error
     // }
     let mut cluster_partition_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
         HashMap::new();
+
+    debug!("slurm.rs:update_partition_metrics: running external command: sinfo --noheader --Format=Cluster,Partition,NodeHost,StateLong --clusters={}", slurm_cluster);
     let sinfo = Command::new("sinfo")
         .arg("--noheader")
         .arg("--Format=Cluster,Partition,NodeHost,StateLong")
@@ -155,6 +181,10 @@ pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error
             bail!("Can't get return code of sinfo command");
         }
     };
+    debug!(
+        "slurm.rs:update_partition_metrics: external command finished with exit code {}",
+        rc
+    );
 
     if !sinfo.status.success() {
         bail!("sinfo command exited with non-normal exit code {}", rc);
@@ -162,6 +192,10 @@ pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error
 
     let stdout = String::from_utf8(sinfo.stdout)?;
     for line in stdout.lines() {
+        debug!(
+            "slurm.rs:update_partition_metrics: Processing line: {}",
+            line
+        );
         let (c, p, _, s) = match split_part_state_line(line) {
             Some(v) => v,
             None => bail!(
@@ -178,6 +212,10 @@ pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error
     for (clu, cpart) in cluster_partition_states.iter() {
         for (part, pstate) in cpart.iter() {
             for (state, count) in pstate.iter() {
+                debug!(
+                    "slurm.rs:update_partition_metrics: Setting PARTITIONS {} {} {} -> {}",
+                    clu, part, state, *count
+                );
                 exporter::PARTITIONS
                     .with_label_values(&[clu, part, state])
                     .set(*count);

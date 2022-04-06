@@ -2,7 +2,7 @@ use crate::constants;
 use crate::slurm;
 
 use lazy_static::lazy_static;
-use log::error;
+use log::{debug, error};
 use prometheus::{IntGaugeVec, Opts, Registry, TextEncoder};
 
 lazy_static! {
@@ -51,18 +51,23 @@ lazy_static! {
 
 pub fn register(bitmask: u8) {
     if bitmask & constants::BITMASK_JOB_NODES == constants::BITMASK_JOB_NODES {
+        debug!("Registering registry JOBS_NODES");
         REGISTRY.register(Box::new(JOBS_NODES.clone())).unwrap();
     }
     if bitmask & constants::BITMASK_JOB_TASKS == constants::BITMASK_JOB_TASKS {
+        debug!("Registering registry JOBS_TASKS");
         REGISTRY.register(Box::new(JOBS_TASKS.clone())).unwrap();
     }
     if bitmask & constants::BITMASK_JOB_CPUS == constants::BITMASK_JOB_CPUS {
+        debug!("Registering registry JOBS_CPUS");
         REGISTRY.register(Box::new(JOBS_CPUS.clone())).unwrap();
     }
     if bitmask & constants::BITMASK_JOB_COUNT == constants::BITMASK_JOB_COUNT {
+        debug!("Registering registry JOBS_COUNT");
         REGISTRY.register(Box::new(JOBS_COUNT.clone())).unwrap();
     }
     if bitmask & constants::BITMASK_PARTITIONS == constants::BITMASK_PARTITIONS {
+        debug!("Registering registry PARTITIONS");
         REGISTRY.register(Box::new(PARTITIONS.clone())).unwrap();
     }
 }

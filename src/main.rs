@@ -27,6 +27,7 @@ async fn main() {
     let mut partitions = true;
 
     options.optflag("C", "no-job-cpus", "Don't export job CPUs");
+    options.optflag("D", "debug", "Enable debug mode");
     options.optflag("J", "no-job-count", "Don't export number of jobs");
     options.optflag("N", "no-job-nodes", "Don't export number of nodes for jobs");
     options.optflag("P", "no-partitions", "Don't export partition states");
