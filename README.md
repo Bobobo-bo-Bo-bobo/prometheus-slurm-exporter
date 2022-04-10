@@ -1,6 +1,10 @@
 # General information
 This is an exporter to export job and partition state information of the [SLURM workload manager](https://slurm.schedmd.com/)to be scraped by [Prometheus](https://prometheus.io).
 
+# Repositories
+* Primary development repository: https://git.ypbind.de/cgit/prometheus-slurm-exporter/
+* Backup repository: https://github.com/Bobobo-bo-Bo-bobo/prometheus-slurm-exporter
+
 # Information
 ## Building
 As a Rust program, a stable Rust build chain is required to build the exporter
