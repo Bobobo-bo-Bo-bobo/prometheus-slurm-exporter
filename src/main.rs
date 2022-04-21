@@ -142,7 +142,7 @@ async fn main() {
     warp::serve(route).run(socketaddr).await;
 }
 
-pub fn socketaddr_from_listen(listen: &str) -> Result<std::net::SocketAddr, Box<dyn Error>> {
+fn socketaddr_from_listen(listen: &str) -> Result<std::net::SocketAddr, Box<dyn Error>> {
     let sockaddrs = listen.to_socket_addrs()?;
     let addresses: Vec<_> = sockaddrs.collect();
     if addresses.is_empty() {
