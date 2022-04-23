@@ -3,6 +3,7 @@ use crate::exporter;
 
 use log::debug;
 use std::collections::HashMap;
+use std::env;
 use std::error::Error;
 use std::process::Command;
 
@@ -20,6 +21,7 @@ pub fn update_job_metrics(slurm_cluster: &str, bitmask: u8) -> Result<(), Box<dy
     let mut job_count_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
         HashMap::new();
 
+    env::set_var("LANG", "C");
     debug!("slurm.rs:update_job_metrics: running external command: squeue --noheader --Format=Cluster,Partition,State,NumNodes,NumTasks,NumCPUs --clusters={} --all", slurm_cluster);
     let squeue = Command::new("squeue")
         .arg("--noheader")
@@ -168,6 +170,7 @@ pub fn update_partition_metrics(slurm_cluster: &str) -> Result<(), Box<dyn Error
     let mut cluster_partition_states: HashMap<String, HashMap<String, HashMap<String, i64>>> =
         HashMap::new();
 
+    env::set_var("LANG", "C");
     debug!("slurm.rs:update_partition_metrics: running external command: sinfo --noheader --Format=Cluster,Partition,NodeHost,StateLong --clusters={}", slurm_cluster);
     let sinfo = Command::new("sinfo")
         .arg("--noheader")
