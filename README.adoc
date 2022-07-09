@@ -1,5 +1,7 @@
-= prometheus-slurm-exporter
+= prometheus-slurm-exporter - Export SLURM job and partition metrics to Prometheus
+:source-highlighter: pygments
 :stylesheet: asciidoc.css
+:toc: left
 
 == Repositories
 
@@ -20,7 +22,7 @@ As a Rust program, a stable Rust build chain is required to build the exporter
 
 The node running this exporter _must_ have a valid SLURM configuration and the SLURM client binaries - `sinfo` and `squeue` - installed and in it’s path.
 
-If running as an unprivileged service user, the user must have access to the information provided by `sinfo` and `squeue` . Futhermore the unprivileged service user must be resolved by all SLURM masters (primary and backup master).
+If running as an unprivileged service user, the user must have access to the information provided by `sinfo` and `squeue` . Furthermore the unprivileged service user must be resolved by all SLURM masters (primary and backup master).
 
 == Command line options
 
